@@ -3,6 +3,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import type { Dream, DreamFilters } from './types';
 import { buildDateRange } from './validation';
+import seedData from '../../data/dreams.json';
 
 const DATA_PATH =
   process.env.DATA_FILE ||
@@ -17,6 +18,11 @@ async function readDreams(): Promise<Dream[]> {
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      const fallback = Array.isArray(seedData) ? (seedData as Dream[]) : [];
+      if (fallback.length > 0) {
+        await writeDreams(fallback);
+        return fallback;
+      }
       return [];
     }
     throw error;
